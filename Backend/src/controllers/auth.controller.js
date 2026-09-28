@@ -1,4 +1,5 @@
 const userModel = require('../models/user.model');
+const tokenBlacklistModel = require('../models/blacklist.model')
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
@@ -92,8 +93,49 @@ async function loginUserController(req, res) {
     })
 }
 
+/**
+ * @name logoutUserController
+ * @description Controller to handle user logout. Clears the JWT token from the user's cookies and adds the token to a blacklist for future validation.
+ * @route GET /api/auth/logout
+ * @access Public   
+ */
+
+async function logoutUserController(req, res) {
+    const token = req.cookies.token;
+    // Add token to blacklist
+    if(token){ 
+        await tokenBlacklistModel.create({token})
+    }
+
+    // Clear the token cookie
+    res.clearCookie('token');
+
+    res.status(200).json({ message: "User logged out successfully" });
+}
+
+/**
+ * @name getmeUserController
+ * @desc get current logged in user details
+ * @route GET /api/auth/get-me
+ * @access public
+ */
+
+async function getMeController(req,res) {
+    const user = await userModel.findById(req.user.id)
+
+    res.status(200).json({
+        message : "User details Fetched Successfully",
+        user : {
+            id : user._id,
+            username : user.username,
+            email : user.email
+        }
+    })
+}
 
 module.exports = { 
     registerUserController ,
-    loginUserController
+    loginUserController ,
+    logoutUserController,
+    getMeController
 };
