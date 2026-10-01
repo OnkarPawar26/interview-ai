@@ -5,6 +5,7 @@ import React from 'react'
 
 const Protected = ({children}) => {
     const{ loading, user} = useAuth()
+ 
     
 
     if(loading){
