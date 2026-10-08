@@ -1,23 +1,25 @@
-const express = require('express');
-const cookieParser = require('cookie-parser')
-const app = express();
-const cors = require('cors')
+const express = require("express")
+const cookieParser = require("cookie-parser")
+const cors = require("cors")
 
+const app = express()
 
-// Middleware to parse JSON requests
-app.use(express.json()); 
-app.use(cookieParser()) 
+app.use(express.json())
+app.use(cookieParser())
 app.use(cors({
-    origin: 'http://localhost:5173', // Replace with your frontend URL
-    credentials: true, // Allow credentials (cookies) to be sent
+    origin: "http://localhost:5173",
+    credentials: true
 }))
 
-// Import routes
-const authRouter = require('./routes/auth.route');
-const interviewRouter = require('./routes/interview.route')
+/* require all the routes here */
+const authRouter = require("./routes/auth.routes")
+const interviewRouter = require("./routes/interview.routes")
 
-// using all the routes
-app.use('/api/auth', authRouter);
-app.use('/api/interview',interviewRouter)
 
-module.exports = app;
+/* using all the routes here */
+app.use("/api/auth", authRouter)
+app.use("/api/interview", interviewRouter)
+
+
+
+module.exports = app

@@ -477,3 +477,29 @@ $severity-low: #3fb950;
         border-color: rgba($severity-low, 0.25);
     }
 }
+
+.download-resume-button:disabled {
+    cursor: wait;
+    opacity: 0.8;
+}
+
+.download-resume-button[aria-busy='true'] svg {
+    display: none;
+}
+
+.resume-pdf-spinner {
+    display: inline-block;
+    width: 0.85rem;
+    height: 0.85rem;
+    margin-right: 0.8rem;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: resume-pdf-spin 0.75s linear infinite;
+}
+
+@keyframes resume-pdf-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
