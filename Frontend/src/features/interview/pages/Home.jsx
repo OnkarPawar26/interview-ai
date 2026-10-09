@@ -131,7 +131,7 @@ const Home = () => {
                                 <p className='dropzone__subtitle'>
                                     {resumeFile
                                         ? `${(resumeFile.size / (1024 * 1024)).toFixed(2)} MB · Click to replace`
-                                        : 'PDF or DOCX (Max 5MB)'}
+                                        : 'PDF (Max 5MB)'}
                                 </p>
                                 <input
                                     hidden
