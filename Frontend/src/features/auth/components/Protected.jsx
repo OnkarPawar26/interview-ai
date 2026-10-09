@@ -1,13 +1,13 @@
 import { useAuth } from "../hooks/useAuth";
 import { Navigate } from "react-router";
 import React from 'react'
+import LoadingState from '../../../components/LoadingState.jsx'
 
 const Protected = ({children}) => {
     const { loading,user } = useAuth()
 
-
     if(loading){
-        return (<main><h1>Loading...</h1></main>)
+        return <LoadingState label='Checking your session...' />
     }
 
     if(!user){

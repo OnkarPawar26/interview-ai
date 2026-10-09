@@ -3,6 +3,7 @@ import "../style/home.scss"
 import { useInterview } from '../hooks/useInterview.js'
 import { useNavigate } from 'react-router'
 import LogoutButton from '../../auth/components/LogoutButton.jsx'
+import LoadingState from '../../../components/LoadingState.jsx'
 
 const JOB_DESCRIPTION_CHAR_LIMIT = 5000
 
@@ -55,15 +56,11 @@ const Home = () => {
     }
 
     if (loading) {
-        return (
-            <main className='loading-screen'>
-                <h1>Loading your interview plan...</h1>
-            </main>
-        )
+        return <LoadingState label='Loading your interview plans...' />
     }
 
     return (
-        <div className='home-page'>
+        <main className='home-page'>
             <LogoutButton className='home-logout-control' />
 
             {/* Page Header */}
@@ -85,15 +82,18 @@ const Home = () => {
                             <h2>Target Job Description</h2>
                             <span className='badge badge--required'>Required</span>
                         </div>
+                        <label className='sr-only' htmlFor='jobDescription'>Target job description</label>
                         <textarea
+                            id='jobDescription'
+                            name='jobDescription'
                             value={jobDescription}
                             onChange={(e) => setJobDescription(e.target.value)}
                             className='panel__textarea'
                             placeholder={`Paste the full job description here...\ne.g. 'Senior Frontend Engineer at Google requires proficiency in React, TypeScript, and large-scale system design...'`}
                             aria-invalid={isJobDescriptionOverLimit}
-                            aria-describedby={isJobDescriptionOverLimit ? 'job-description-limit-warning' : undefined}
+                            aria-describedby={`job-description-counter${isJobDescriptionOverLimit ? ' job-description-limit-warning' : ''}`}
                         />
-                        <div className={`char-counter ${isJobDescriptionOverLimit ? 'char-counter--warning' : ''}`}>
+                        <div id='job-description-counter' className={`char-counter ${isJobDescriptionOverLimit ? 'char-counter--warning' : ''}`} aria-live='off'>
                             {jobDescription.length} / {JOB_DESCRIPTION_CHAR_LIMIT} chars
                         </div>
                         {isJobDescriptionOverLimit && (
@@ -118,10 +118,10 @@ const Home = () => {
 
                         {/* Upload Resume */}
                         <div className='upload-section'>
-                            <label className='section-label'>
+                            <div className='section-label'>
                                 Upload Resume
                                 <span className='badge badge--best'>Best Results</span>
-                            </label>
+                            </div>
                             <label className={`dropzone ${resumeFile ? 'dropzone--uploaded' : ''}`} htmlFor='resume'>
                                 <span className='dropzone__icon'>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" /><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" /></svg>
@@ -135,17 +135,20 @@ const Home = () => {
                                         : 'PDF or DOCX (Max 5MB)'}
                                 </p>
                                 <input
-                                    hidden
+                                    className='dropzone__input'
                                     type='file'
                                     id='resume'
                                     name='resume'
                                     accept='.pdf,.docx'
+                                    aria-label='Upload your resume in PDF or DOCX format'
+                                    aria-describedby='resume-help upload-status'
                                     onChange={(event) => setResumeFile(event.target.files?.[0] ?? null)}
                                 />
                             </label>
-                            <p className={`upload-status ${resumeFile ? 'upload-status--success' : ''}`} role='status'>
+                            <p id='upload-status' className={`upload-status ${resumeFile ? 'upload-status--success' : ''}`} role='status' aria-live='polite'>
                                 {resumeFile ? 'Resume uploaded successfully.' : 'No resume uploaded. You can use your self-description instead.'}
                             </p>
+                            <span id='resume-help' className='sr-only'>PDF or DOCX, up to 5 megabytes.</span>
                         </div>
 
                         {/* OR Divider */}
@@ -184,11 +187,13 @@ const Home = () => {
                 <div className='interview-card__footer'>
                     <span className='footer-info'>AI-Powered Strategy Generation &bull; Approx 30s</span>
                     <button
+                        type='button'
                         onClick={handleGenerateReport}
                         className='generate-btn'
+                        aria-describedby={isJobDescriptionOverLimit ? 'job-description-limit-warning' : undefined}
                         disabled={isJobDescriptionOverLimit}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" /></svg>
-                        Generate My Interview Strategy
+                        Generate My Interview Plan
                     </button>
                 </div>
             </div>
@@ -199,10 +204,12 @@ const Home = () => {
                     <h2>My Recent Interview Plans</h2>
                     <ul className='reports-list'>
                         {reports.map(report => (
-                            <li key={report._id} className='report-item' onClick={() => navigate(`/interview/${report._id}`)}>
-                                <h3>{report.title || 'Untitled Position'}</h3>
-                                <p className='report-meta'>Generated on {new Date(report.createdAt).toLocaleDateString()}</p>
-                                <p className={`match-score ${report.matchScore >= 80 ? 'score--high' : report.matchScore >= 60 ? 'score--mid' : 'score--low'}`}>Match Score: {report.matchScore}%</p>
+                            <li key={report._id} className='report-item'>
+                                <button type='button' className='report-item__button' onClick={() => navigate(`/interview/${report._id}`)}>
+                                    <span className='report-item__title'>{report.title || 'Untitled Position'}</span>
+                                    <span className='report-meta'>Generated on {new Date(report.createdAt).toLocaleDateString()}</span>
+                                    <span className={`match-score ${report.matchScore >= 80 ? 'score--high' : report.matchScore >= 60 ? 'score--mid' : 'score--low'}`}>Match Score: {report.matchScore}%</span>
+                                </button>
                             </li>
                         ))}
                     </ul>
@@ -211,11 +218,11 @@ const Home = () => {
 
             {/* Page Footer */}
             <footer className='page-footer'>
-                <a href='#'>Privacy Policy</a>
-                <a href='#'>Terms of Service</a>
-                <a href='#'>Help Center</a>
+                <span>Privacy Policy</span>
+                <span>Terms of Service</span>
+                <span>Help Center</span>
             </footer>
-        </div>
+        </main>
     )
 }
 
