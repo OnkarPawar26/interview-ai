@@ -13,7 +13,6 @@ Interview.ai is a web app for preparing for job interviews. A signed-in user pro
 - [Run locally](#run-locally)
 - [Environment variables](#environment-variables)
 - [Project structure](#project-structure)
-- [Current limitations](#current-limitations)
 
 ## Features
 
@@ -73,18 +72,40 @@ Requests generally pass through these layers:
 ## Interview report flow
 
 1. The user fills in a job description and profile information on the home page and selects **Generate My Interview Plan**.
-2. The frontend submits a `multipart/form-data` request containing `jobDescription`, `selfDescription`, and a `resume` file to `POST /api/interview/`.
-3. The route checks the user's JWT cookie and passes the uploaded file through Multer. Multer keeps the file in memory and limits it to 3 MB.
-4. The interview controller extracts text from the uploaded PDF with `pdf-parse`.
-5. `ai.service.js` combines the extracted resume text, self-description, and job description into a Gemini prompt.
-6. The service requests JSON output using a Zod-derived JSON schema. The expected result contains:
+2. The frontend submits a `multipart/form-data` request containing `jobDescription`, `selfDescription`, and an optional `resume` file to `POST /api/interview/`. The user must provide a job description and either a resume or a self-description.
+3. The route checks the user's JWT cookie and passes an uploaded file through Multer when one is present. Multer keeps the file in memory and limits it to 3 MB.
+4. When a resume PDF is attached, the interview controller extracts its text with `pdf-parse`; without a file, it proceeds using the self-description.
+5. `ai.service.js` combines the available candidate information and job description into a Gemini prompt. Missing resume or self-description values are marked as not provided, and the prompt tells Gemini not to invent candidate qualifications or experience.
+6. The service requests JSON output using a schema derived from Zod. It parses Gemini's response as JSON; the response is not separately validated with `interviewReportSchema.parse()`. The expected result contains:
    - `title` and `matchScore`
    - `technicalQuestions` and `behavioralQuestions`, each with a question, intention, and answer guidance
    - `skillGaps` with a low, medium, or high severity
    - `preparationPlan` with a day, focus, and tasks
-7. The service parses Gemini's response text as JSON. It tries these report models in order: `gemini-3.8-flash`, `gemini-3.7-flash`, `gemini-3.6-flash`, then `gemini-3.5-flash`. For temporary `500`, `503`, or `429` errors it tries the next model; other errors are rethrown immediately.
+7. The service tries these report model names in order: `gemini-3.8-flash`, `gemini-3.7-flash`, `gemini-3.6-flash`, then `gemini-3.5-flash`. For API errors with status `500`, `503`, or `429`, it tries the next name; other errors are rethrown immediately. These names reflect the current source configuration and may need updating to models enabled for your API key.
 8. The controller saves the report and its source text in MongoDB, associated with the current user, and returns the created report.
 9. The frontend navigates to `/interview/:interviewId`. The report page fetches the saved report and displays the sections, score, and skill gaps.
+
+### Gemini model fallback flow
+
+The report service tries configured Gemini models in sequence. If a request fails with status `500`, `503`, or `429`, it tries the next model. Other errors stop the sequence and are returned to Express. If every configured model fails with a retryable status, the service throws an error for the API request.
+
+```mermaid
+flowchart TD
+    Request[HTTP request] --> Controller[Interview controller]
+    Controller --> Service[generateInterviewReport]
+    Service --> M1[Gemini 3.8 Flash]
+    M1 -->|Success| Report[Generated report]
+    M1 -->|500, 503, or 429| M2[Gemini 3.7 Flash]
+    M2 -->|Success| Report
+    M2 -->|500, 503, or 429| M3[Gemini 3.6 Flash]
+    M3 -->|Success| Report
+    M3 -->|500, 503, or 429| M4[Gemini 3.5 Flash]
+    M4 -->|Success| Report
+    M4 -->|500, 503, or 429| Failure[Service throws an error]
+    Report --> Save[Controller saves report]
+    Save --> Response[HTTP response with report]
+    Failure --> Error[HTTP error response]
+```
 
 ## Resume PDF flow
 
@@ -124,7 +145,7 @@ All routes use the backend origin `http://localhost:3000`. Routes marked **Prote
 | `POST` | `/api/auth/login` | Public | Verify credentials and set the JWT cookie. Request JSON: `email`, `password`. |
 | `GET` | `/api/auth/logout` | Public | Blacklist the current token and clear its cookie. |
 | `GET` | `/api/auth/get-me` | Protected | Return the current user's basic details. |
-| `POST` | `/api/interview/` | Protected | Generate and save a report from multipart fields `jobDescription`, `selfDescription`, and `resume`. |
+| `POST` | `/api/interview/` | Protected | Generate and save a report from multipart fields `jobDescription`, optional `selfDescription`, and optional `resume` (at least one candidate source is required). |
 | `GET` | `/api/interview/` | Protected | List the current user's recent reports. |
 | `GET` | `/api/interview/report/:interviewId` | Protected | Fetch one report owned by the current user. |
 | `POST` | `/api/interview/resume/pdf/:interviewReportId` | Protected | Generate and download a tailored resume PDF. |
@@ -209,14 +230,3 @@ GOOGLE_GENAI_API_KEY=your-google-genai-api-key
             ├── auth/
             └── interview/
 ```
-
-## Current limitations
-
-- **Resume upload behavior needs alignment:** the frontend file picker advertises PDF and DOCX, but the backend uses `pdf-parse`, which expects PDF content. The backend also allows 3 MB while the frontend copy advertises a larger limit.
-- **Resume input is required by the current controller:** although the interface describes a resume or self-description, the controller immediately reads `req.file.buffer`. A request with only a self-description will fail unless the backend is updated to handle a missing file.
-- **PDF report ownership check:** report details are queried by both report ID and current user, but the resume-PDF controller currently looks up the report by ID alone. Add the same owner filter before using this endpoint in a multi-user deployment.
-- **Local service URLs:** the frontend Axios clients use `http://localhost:3000`, and backend CORS allows `http://localhost:5173`. Update these for deployment.
-- **Authentication hardening:** the JWT cookie is set without explicit `httpOnly`, `secure`, or `sameSite` options. Configure appropriate cookie flags and HTTPS for production.
-- **Email verification:** registration checks for required values and duplicate accounts but does not currently validate email format on the backend or verify mailbox ownership.
-- **AI output:** generated scores and suggestions can be inaccurate or incomplete. Treat them as preparation guidance and review them before use.
-- Resume text, job descriptions, and self-descriptions are sent to Gemini for generation and saved in the associated report in MongoDB. Avoid submitting information you do not want processed or stored.

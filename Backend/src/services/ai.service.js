@@ -133,17 +133,22 @@ async function generateInterviewReport({
     jobDescription
 }) {
 
+    const resumeDetails = resume?.trim() || "Not provided."
+    const candidateDescription = selfDescription?.trim() || "Not provided."
+
     const prompt = `
 Generate an interview report for a candidate with the following details:
 
 Resume:
-${resume}
+${resumeDetails}
 
 Self Description:
-${selfDescription}
+${candidateDescription}
 
 Job Description:
 ${jobDescription}
+
+Use only the candidate information provided. Do not invent work experience, qualifications, or skills.
 `;
 
     let lastError;

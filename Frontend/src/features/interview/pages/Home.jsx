@@ -21,11 +21,26 @@ const Home = () => {
     const navigate = useNavigate()
 
     const handleGenerateReport = async () => {
+        setGenerationError("")
+
         if (isJobDescriptionOverLimit) return
 
-        setGenerationError("")
+        if (!jobDescription.trim()) {
+            setGenerationError("Enter the target job description to continue.")
+            return
+        }
+
+        if (!resumeFile && !selfDescription.trim()) {
+            setGenerationError("Upload a resume PDF or enter a self-description to continue.")
+            return
+        }
+
         try {
-            const data = await generateReport({ jobDescription, selfDescription, resumeFile })
+            const data = await generateReport({
+                jobDescription: jobDescription.trim(),
+                selfDescription: selfDescription.trim(),
+                resumeFile,
+            })
             navigate(`/interview/${data._id}`)
         } catch (error) {
             setGenerationError(

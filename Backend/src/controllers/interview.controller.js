@@ -9,21 +9,44 @@ const interviewReportModel = require("../models/interviewReport.model")
  * @description Controller to generate interview report based on user self description, resume and job description.
  */
 async function generateInterViewReportController(req, res) {
+    const { selfDescription = "", jobDescription = "" } = req.body || {}
+    const normalizedSelfDescription = typeof selfDescription === "string" ? selfDescription.trim() : ""
+    const normalizedJobDescription = typeof jobDescription === "string" ? jobDescription.trim() : ""
 
-    const resumeContent = await (new pdfParse.PDFParse(Uint8Array.from(req.file.buffer))).getText()
-    const { selfDescription, jobDescription } = req.body
+    if (!normalizedJobDescription) {
+        return res.status(400).json({ message: "Please provide a target job description." })
+    }
+
+    let resumeText = ""
+
+    if (req.file?.buffer) {
+        try {
+            const resumeContent = await (new pdfParse.PDFParse(Uint8Array.from(req.file.buffer))).getText()
+            resumeText = resumeContent.text?.trim() || ""
+        } catch (error) {
+            return res.status(400).json({
+                message: "We couldn't read that resume. Upload a valid PDF or use your self-description instead.",
+            })
+        }
+    }
+
+    if (!resumeText && !normalizedSelfDescription) {
+        return res.status(400).json({
+            message: "Upload a resume PDF or enter a self-description to generate your interview plan.",
+        })
+    }
 
     const interViewReportByAi = await generateInterviewReport({
-        resume: resumeContent.text,
-        selfDescription,
-        jobDescription
+        resume: resumeText,
+        selfDescription: normalizedSelfDescription,
+        jobDescription: normalizedJobDescription,
     })
 
     const interviewReport = await interviewReportModel.create({
         user: req.user.id,
-        resume: resumeContent.text,
-        selfDescription,
-        jobDescription,
+        resume: resumeText,
+        selfDescription: normalizedSelfDescription,
+        jobDescription: normalizedJobDescription,
         ...interViewReportByAi
     })
 
