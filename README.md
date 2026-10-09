@@ -5,6 +5,8 @@ Interview.ai is a web app for preparing for job interviews. A signed-in user pro
 ## Contents
 
 - [Features](#features)
+- [Tech stack](#tech-stack)
+- [NPM packages](#npm-packages)
 - [Architecture](#architecture)
 - [Interview report flow](#interview-report-flow)
 - [Resume PDF flow](#resume-pdf-flow)
@@ -26,11 +28,58 @@ Interview.ai is a web app for preparing for job interviews. A signed-in user pro
 - Use public About, Help, Privacy Policy, and Terms pages.
 - Responsive dark-themed interface.
 
+## Tech stack
+
+<p>
+  <img alt="React" src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" />
+  <img alt="Vite" src="https://img.shields.io/badge/Vite-20232A?style=for-the-badge&logo=vite&logoColor=646CFF" />
+  <img alt="Sass" src="https://img.shields.io/badge/Sass-20232A?style=for-the-badge&logo=sass&logoColor=CC6699" />
+  <img alt="Node.js" src="https://img.shields.io/badge/Node.js-20232A?style=for-the-badge&logo=nodedotjs&logoColor=5FA04E" />
+  <img alt="Express" src="https://img.shields.io/badge/Express-20232A?style=for-the-badge&logo=express&logoColor=FFFFFF" />
+  <img alt="MongoDB" src="https://img.shields.io/badge/MongoDB-20232A?style=for-the-badge&logo=mongodb&logoColor=47A248" />
+  <img alt="Google Gemini" src="https://img.shields.io/badge/Google_Gemini-20232A?style=for-the-badge&logo=googlegemini&logoColor=8E75B2" />
+</p>
+
+The frontend is built with React, Vite, React Router, and Sass. The backend uses Node.js, Express, MongoDB with Mongoose, and Google's Gemini API. Puppeteer renders AI-generated resume HTML as PDF.
+
+## NPM packages
+
+Install packages separately in `Backend/` and `Frontend/`; each folder has its own `package.json` and lockfile.
+
+### Backend runtime packages
+
+| Package | Role |
+| --- | --- |
+| `express` | HTTP server and API routing |
+| `mongoose` | MongoDB models and database access |
+| `@google/genai` | Gemini API client for interview reports and resume HTML |
+| `zod`, `zod-to-json-schema` | Define AI response shapes and convert schemas for Gemini |
+| `multer` | Receive resume files in memory |
+| `pdf-parse` | Extract text from uploaded PDF resumes |
+| `puppeteer` | Render generated resume HTML to PDF |
+| `jsonwebtoken`, `bcryptjs` | Sign login tokens and hash passwords |
+| `cookie-parser`, `cors` | Parse session cookies and configure cross-origin requests |
+| `dotenv` | Load local environment variables |
+
+### Frontend runtime packages
+
+| Package | Role |
+| --- | --- |
+| `react`, `react-dom` | UI components and browser rendering |
+| `react-router` | Client-side navigation and routes |
+| `axios` | HTTP requests to the backend API |
+| `sass` | SCSS compilation and styling |
+
+### Development packages
+
+The frontend uses `vite` and `@vitejs/plugin-react` for development and builds, plus `eslint`, `eslint-plugin-react-hooks`, `eslint-plugin-react-refresh`, `@eslint/js`, `globals`, `@types/react`, and `@types/react-dom` for linting and editor/type support. The backend's `dev` script runs `nodemon` through `npx`.
+
 ## Architecture
 
 The repository has a React/Vite frontend and an Express/MongoDB backend. The frontend calls the backend over HTTP. Protected API calls send the authentication cookie using Axios `withCredentials`.
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"background":"#0d1117","primaryColor":"#161b22","primaryTextColor":"#e6edf3","primaryBorderColor":"#ff2d78","lineColor":"#ff6b9d","secondaryColor":"#1c2230","tertiaryColor":"#1e2535","fontFamily":"system-ui"}}}%%
 flowchart LR
     Browser[React application<br/>Vite, React Router]
     API[Express API<br/>routes, middleware, controllers]
@@ -90,6 +139,7 @@ Requests generally pass through these layers:
 The report service tries configured Gemini models in sequence. If a request fails with status `500`, `503`, or `429`, it tries the next model. Other errors stop the sequence and are returned to Express. If every configured model fails with a retryable status, the service throws an error for the API request.
 
 ```mermaid
+%%{init: {"theme":"base","themeVariables":{"background":"#0d1117","primaryColor":"#161b22","primaryTextColor":"#e6edf3","primaryBorderColor":"#ff2d78","lineColor":"#ff6b9d","secondaryColor":"#1c2230","tertiaryColor":"#1e2535","fontFamily":"system-ui"}}}%%
 flowchart TD
     Request[HTTP request] --> Controller[Interview controller]
     Controller --> Service[generateInterviewReport]
@@ -105,6 +155,17 @@ flowchart TD
     Report --> Save[Controller saves report]
     Save --> Response[HTTP response with report]
     Failure --> Error[HTTP error response]
+
+    classDef request fill:#1c2230,stroke:#2a3348,color:#e6edf3
+    classDef process fill:#161b22,stroke:#ff2d78,color:#e6edf3
+    classDef model fill:#1e2535,stroke:#ff6b9d,color:#e6edf3
+    classDef success fill:#1b2a4a,stroke:#2d4a7a,color:#e6edf3
+    classDef failure fill:#161b22,stroke:#ff4d4d,color:#e6edf3
+    class Request,Response request
+    class Controller,Service,Save process
+    class M1,M2,M3,M4 model
+    class Report success
+    class Failure,Error failure
 ```
 
 ## Resume PDF flow
