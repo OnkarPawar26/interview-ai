@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import "../style/home.scss"
 import { useInterview } from '../hooks/useInterview.js'
 import { useNavigate } from 'react-router'
 import LogoutButton from '../../auth/components/LogoutButton.jsx'
+import { AuthContext } from '../../auth/auth.context.jsx'
 import LoadingState from '../../../components/LoadingState.jsx'
 
 const JOB_DESCRIPTION_CHAR_LIMIT = 5000
@@ -10,6 +11,7 @@ const JOB_DESCRIPTION_CHAR_LIMIT = 5000
 const Home = () => {
 
     const { loading, isGeneratingReport, generateReport, reports } = useInterview()
+    const { user } = useContext(AuthContext)
     const [ jobDescription, setJobDescription ] = useState("")
     const [ selfDescription, setSelfDescription ] = useState("")
     const [ resumeFile, setResumeFile ] = useState(null)
@@ -110,7 +112,7 @@ const Home = () => {
                             <span className='panel__icon'>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                             </span>
-                            <h2>Your Profile</h2>
+                            <h2>{user?.username || 'Your Profile'}</h2>
                         </div>
 
                         {/* Upload Resume */}
@@ -208,9 +210,46 @@ const Home = () => {
 
             {/* Page Footer */}
             <footer className='page-footer'>
-                <a href='#'>Privacy Policy</a>
-                <a href='#'>Terms of Service</a>
-                <a href='#'>Help Center</a>
+                <div className='page-footer__top'>
+                    <div className='page-footer__brand'>
+                        <span className='page-footer__logo' aria-hidden='true'>
+                            <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='currentColor'>
+                                <path d='M13.5 12a1.48045 1.48045 0 0 0-.6427.1504L10.70705 10H9v1h1.29295l1.8573 1.8574A1.48325 1.48325 0 0 0 12 13.5a1.5 1.5 0 1 0 1.5-1.5Zm0 2a.5.5 0 1 1 .5-.5.50045.50045 0 0 1-.5.5Z' />
+                                <path d='M13.5 6.5a1.4974 1.4974 0 0 0-1.40785 1H9v1h3.09215A1.49735 1.49735 0 1 0 13.5 6.5Zm0 2a.5.5 0 1 1 .5-.5.50045.50045 0 0 1-.5.5Z' />
+                                <path d='M13.5 1a1.50165 1.50165 0 0 0-1.5 1.5 1.48285 1.48285 0 0 0 .17405.6865L10.29785 5H9v1h1.70215l2.19945-2.1262A1.49935 1.49935 0 1 0 13.5 1Zm0 2a.5.5 0 1 1 .5-.5.50045.50045 0 0 1-.5.5Z' />
+                                <path d='M9 3h1V2H9a1.9878 1.9878 0 0 0-1.5.69115A1.9878 1.9878 0 0 0 6 2h-.5A4.505 4.505 0 0 0 1 6.5v3A4.505 4.505 0 0 0 5.5 14H6a1.9878 1.9878 0 0 0 1.5-.69115A1.9878 1.9878 0 0 0 9 14h1v-1H9a1.00115 1.00115 0 0 1-1-1V4a1.00115 1.00115 0 0 1 1-1ZM6 13h-.5a3.50235 3.50235 0 0 1-3.46-3H3V9H2V7h1.5A1.50165 1.50165 0 0 0 5 5.5v-1H4v1a.50045.50045 0 0 1-.5.5H2.04A3.50235 3.50235 0 0 1 5.5 3H6a1.00115 1.00115 0 0 1 1 1v2H6v1h1v2H6a1.50165 1.50165 0 0 0-1.5 1.5v1h1v-1A.50045.50045 0 0 1 6 10h1v2a1.00115 1.00115 0 0 1-1 1Z' />
+                            </svg>
+                        </span>
+                        <span className='page-footer__wordmark'>Interview<span>.ai</span></span>
+                    </div>
+                    <div className='page-footer__top-right'>
+                        <p className='page-footer__tagline'>AI-powered interview preparation</p>
+                        <nav className='page-footer__socials' aria-label='Social links'>
+                            <a href='https://github.com/OnkarPawar26/interview-ai' target='_blank' rel='noreferrer' aria-label='GitHub' title='GitHub'>
+                                <svg viewBox='0 0 24 24' fill='currentColor' aria-hidden='true'><path d='M12 .9a11.1 11.1 0 0 0-3.51 21.63c.56.1.76-.24.76-.54v-2.1c-3.1.67-3.76-1.32-3.76-1.32-.5-1.28-1.23-1.62-1.23-1.62-1.01-.69.08-.68.08-.68 1.12.08 1.71 1.15 1.71 1.15 1 1.7 2.63 1.21 3.27.92.1-.72.39-1.21.71-1.49-2.48-.28-5.09-1.24-5.09-5.52 0-1.22.44-2.22 1.15-3-.12-.28-.5-1.42.11-2.96 0 0 .94-.3 3.05 1.15a10.6 10.6 0 0 1 5.55 0c2.12-1.45 3.05-1.15 3.05-1.15.61 1.54.23 2.68.11 2.96.72.78 1.15 1.78 1.15 3 0 4.29-2.61 5.24-5.1 5.51.4.35.76 1.03.76 2.08v3.07c0 .3.2.65.77.54A11.1 11.1 0 0 0 12 .9Z' /></svg>
+                            </a>
+                            <a href='https://www.linkedin.com/in/onkar-pawar/' target='_blank' rel='noreferrer' aria-label='LinkedIn' title='LinkedIn'>
+                                <svg viewBox='0 0 24 24' fill='currentColor' aria-hidden='true'><path d='M20.45 2H3.55C2.69 2 2 2.68 2 3.52v16.96c0 .84.69 1.52 1.55 1.52h16.9c.86 0 1.55-.68 1.55-1.52V3.52c0-.84-.69-1.52-1.55-1.52ZM7.93 18.46H4.96V9h2.97v9.46ZM6.45 7.71a1.72 1.72 0 1 1 0-3.44 1.72 1.72 0 0 1 0 3.44Zm12.01 10.75h-2.96v-4.6c0-1.1-.02-2.52-1.54-2.52-1.54 0-1.78 1.2-1.78 2.44v4.68H9.22V9h2.84v1.29h.04c.4-.74 1.36-1.52 2.8-1.52 3 0 3.56 1.97 3.56 4.53v5.16Z' /></svg>
+                            </a>
+                            <a href='mailto:pawaronkar2605@gmail.com' aria-label='Email' title='Email'>
+                                <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.8' strokeLinecap='round' strokeLinejoin='round' aria-hidden='true'><rect x='3' y='5' width='18' height='14' rx='2' /><path d='m3 7 9 6 9-6' /></svg>
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+
+                <div className='page-footer__bottom'>
+                    <nav className='page-footer__links' aria-label='Footer links'>
+                        <a href='mailto:pawaronkar2605@gmail.com'>Help Center</a>
+                        <span aria-hidden='true'>•</span>
+                        <a href='#privacy'>Privacy Policy</a>
+                        <span aria-hidden='true'>•</span>
+                        <a href='#terms'>Terms of Service</a>
+                        <span aria-hidden='true'>•</span>
+                        <a href='mailto:?subject=Contact%20Interview.ai'>Contact</a>
+                    </nav>
+                    <p>© {new Date().getFullYear()} Interview.ai · Built to help you prepare with confidence.</p>
+                </div>
             </footer>
         </div>
     )
