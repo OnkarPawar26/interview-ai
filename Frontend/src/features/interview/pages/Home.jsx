@@ -7,7 +7,7 @@ const JOB_DESCRIPTION_CHAR_LIMIT = 5000
 
 const Home = () => {
 
-    const { loading, generateReport,reports } = useInterview()
+    const { loading, isGeneratingReport, generateReport, reports } = useInterview()
     const [ jobDescription, setJobDescription ] = useState("")
     const [ selfDescription, setSelfDescription ] = useState("")
     const [ resumeFile, setResumeFile ] = useState(null)
@@ -30,6 +30,27 @@ const Home = () => {
                     : error.response?.data?.message || "Unable to generate your interview plan. Please try again."
             )
         }
+    }
+
+    if (isGeneratingReport) {
+        return (
+            <main className='report-generation-loading' role='status' aria-live='polite'>
+                <section className='report-generation-loader'>
+                    <div className='report-generation-loader__spinner' aria-hidden='true'>
+                        <span />
+                    </div>
+                    <p className='report-generation-loader__eyebrow'>AI INTERVIEW PLAN</p>
+                    <h1>Building your interview strategy</h1>
+                    <p className='report-generation-loader__message'>
+                        Matching your experience to the role and preparing personalized questions.
+                    </p>
+                    <div className='report-generation-loader__progress' aria-hidden='true'>
+                        <span />
+                    </div>
+                    <p className='report-generation-loader__hint'>This may take a little while</p>
+                </section>
+            </main>
+        )
     }
 
     if (loading) {

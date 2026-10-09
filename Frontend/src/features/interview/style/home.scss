@@ -33,6 +33,106 @@ $font-stack:     system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Robot
     gap: 2rem;
 }
 
+.report-generation-loading {
+    min-height: 100vh;
+    width: 100%;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+    background: radial-gradient(ellipse at center, rgba($accent, 0.08), transparent 55%), $bg-page;
+    color: $text-primary;
+    font-family: $font-stack;
+}
+
+.report-generation-loader {
+    width: min(100%, 480px);
+    padding: 3rem 2.5rem 2.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background-color: rgba($bg-card, 0.94);
+    border: 1px solid rgba($accent, 0.24);
+    border-radius: 1rem;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35), 0 0 40px rgba($accent, 0.08);
+
+    h1 {
+        margin: 0.5rem 0 0.65rem;
+        color: $text-primary;
+        font-size: clamp(1.35rem, 4vw, 1.75rem);
+    }
+
+    &__spinner {
+        width: 68px;
+        height: 68px;
+        margin-bottom: 1.5rem;
+        display: grid;
+        place-items: center;
+        border: 3px solid rgba($accent, 0.18);
+        border-top-color: $accent;
+        border-right-color: $accent-alt;
+        border-radius: 50%;
+        animation: report-loader-spin 1s linear infinite;
+
+        span {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: $accent-alt;
+            box-shadow: 0 0 16px rgba($accent, 0.8);
+        }
+    }
+
+    &__eyebrow {
+        margin: 0;
+        color: $accent-alt;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+    }
+
+    &__message {
+        max-width: 340px;
+        margin: 0;
+        color: $text-muted;
+        font-size: 0.9rem;
+        line-height: 1.6;
+    }
+
+    &__progress {
+        width: min(100%, 280px);
+        height: 4px;
+        margin-top: 1.75rem;
+        overflow: hidden;
+        background: rgba($accent, 0.15);
+        border-radius: 999px;
+
+        span {
+            display: block;
+            width: 38%;
+            height: 100%;
+            background: linear-gradient(90deg, $accent, $accent-alt);
+            border-radius: inherit;
+            animation: report-loader-progress 1.6s ease-in-out infinite;
+        }
+    }
+
+    &__hint {
+        margin: 0.8rem 0 0;
+        color: $text-muted;
+        font-size: 0.75rem;
+    }
+}
+
+@keyframes report-loader-spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes report-loader-progress {
+    0% { transform: translateX(-110%); }
+    100% { transform: translateX(370%); }
+}
+
 // ── Page Header ──────────────────────────────────────────────────────────────
 .page-header {
     text-align: center;
