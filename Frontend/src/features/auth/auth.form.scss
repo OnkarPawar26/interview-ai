@@ -12,10 +12,6 @@
         width: min(100%, 420px);
         min-width: 0;
         padding: clamp(1.25rem, 5vw, 2rem);
-        background: #1c2230;
-        border: 1px solid #2a3348;
-        border-radius: 1rem;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
 
         display: flex;
         flex-direction: column;
@@ -37,21 +33,11 @@
 
         input{
             width: 100%;
-            min-height: 44px;
-            border: 1px solid #39445b;
+            border: none;
+            outline: none;
             padding-inline: 1rem;
             padding-block: 0.75rem;
             border-radius: 0.75rem;
-            background: #1e2535;
-            color: #e6edf3;
-
-            &::placeholder {
-                color: #a1aab5;
-            }
-
-            &:focus-visible {
-                border-color: #ff2d78;
-            }
         }
     }
 
@@ -78,22 +64,14 @@
         opacity: 0.8;
     }
 
-    .button {
-        min-height: 44px;
-    }
-
     a{
-        color: #ff6b9d;
+        color: #e1034d;
         text-decoration: none;
-
-        &:hover {
-            text-decoration: underline;
-        }
     }
 }
 
 @media (max-width: 420px) {
-    main {
+    .auth-page {
         padding: 1rem;
     }
 }

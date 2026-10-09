@@ -9,7 +9,6 @@ const Register = () => {
     const [ username, setUsername ] = useState("")
     const [ email, setEmail ] = useState("")
     const [ password, setPassword ] = useState("")
-    const [errorMessage, setErrorMessage] = useState("")
 
     const {handleRegister} = useAuth()
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -17,12 +16,9 @@ const Register = () => {
     const handleSubmit = async (e) => {
         e.preventDefault()
         setIsSubmitting(true)
-        setErrorMessage("")
         try {
             await handleRegister({username,email,password})
             navigate("/")
-        } catch (error) {
-            setErrorMessage(error.response?.data?.message || "Unable to create your account. Please try again.")
         } finally {
             setIsSubmitting(false)
         }
@@ -39,28 +35,20 @@ const Register = () => {
                         <label htmlFor="username">Username</label>
                         <input
                             onChange={(e) => { setUsername(e.target.value) }}
-                            type="text" id="username" name='username' placeholder='Enter username'
-                            autoComplete='username' required aria-invalid={Boolean(errorMessage)}
-                            aria-describedby={errorMessage ? 'register-error' : undefined} />
+                            type="text" id="username" name='username' placeholder='Enter username' />
                     </div>
                     <div className="input-group">
                         <label htmlFor="email">Email</label>
                         <input
                             onChange={(e) => { setEmail(e.target.value) }}
-                            type="email" id="email" name='email' placeholder='Enter email address'
-                            autoComplete='email' required aria-invalid={Boolean(errorMessage)}
-                            aria-describedby={errorMessage ? 'register-error' : undefined} />
+                            type="email" id="email" name='email' placeholder='Enter email address' />
                     </div>
                     <div className="input-group">
                         <label htmlFor="password">Password</label>
                         <input
                             onChange={(e) => { setPassword(e.target.value) }}
-                            type="password" id="password" name='password' placeholder='Enter password'
-                            autoComplete='new-password' required aria-invalid={Boolean(errorMessage)}
-                            aria-describedby={errorMessage ? 'register-error' : undefined} />
+                            type="password" id="password" name='password' placeholder='Enter password' />
                     </div>
-
-                    {errorMessage && <p id='register-error' className='form-error' role='alert'>{errorMessage}</p>}
 
                     <button className='button primary-button' type='submit' disabled={isSubmitting} aria-busy={isSubmitting}>
                         {isSubmitting && <span className='button-spinner' aria-hidden='true' />}

@@ -45,7 +45,6 @@ $font-stack:     system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Robot
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    min-height: 44px;
     padding: 0.6rem 0.85rem;
     color: $text-muted;
     background: $bg-card;
@@ -362,7 +361,6 @@ $font-stack:     system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Robot
 }
 
 .dropzone {
-    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -406,22 +404,6 @@ $font-stack:     system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Robot
         margin: 0;
     }
 
-    &:focus-within {
-        outline: 3px solid rgba($accent, 0.75);
-        outline-offset: 3px;
-    }
-
-    &__input {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
-    }
 }
 
 .upload-status {
@@ -515,7 +497,6 @@ $font-stack:     system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Robot
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    min-height: 44px;
     padding: 0.75rem 1.5rem;
     background: linear-gradient(135deg, $accent 0%, color.adjust($accent, $lightness: -10%) 100%);
     color: #fff;
@@ -560,44 +541,20 @@ $font-stack:     system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Robot
             background-color: $bg-card;
             border: 1px solid $border-color;
             border-radius: 0.5rem;
+            padding: 1rem;
             flex: 1;
             min-width: min(100%, 250px);
-            overflow: hidden;
-
-            &__button {
-                width: 100%;
-                min-height: 100%;
-                padding: 1rem;
-                display: flex;
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.5rem;
-                color: inherit;
-                text-align: left;
-                background: transparent;
-                border: 0;
-                cursor: pointer;
-
-                .report-item__title {
-                    font-size: 1rem;
-                    font-weight: 700;
-                }
-
-                .report-meta {
-                    color: $text-muted;
-                    font-size: 0.8rem;
-                }
-
-                &:hover {
-                    background-color: rgba($accent, 0.05);
-                }
-            }
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            cursor: pointer;
+            flex-shrink: 0;
 
             .match-score {
-                margin: 0;
                 font-size: 0.8rem;
                 font-weight: 600;
                 color: $accent;
+                align-items: flex-start;
             }
         }
     }
@@ -609,9 +566,15 @@ $font-stack:     system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Robot
     display: flex;
     gap: 1.5rem;
 
-    span {
+    a {
         font-size: 0.8rem;
         color: $text-muted;
+        text-decoration: none;
+        transition: color 0.2s;
+
+        &:hover {
+            color: $text-primary;
+        }
     }
 }
 

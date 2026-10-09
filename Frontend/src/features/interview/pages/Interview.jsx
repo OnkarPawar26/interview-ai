@@ -14,25 +14,19 @@ const NAV_ITEMS = [
 ]
 
 // ── Sub-components ────────────────────────────────────────────────────────────
-const QuestionCard = ({ item, index, idPrefix }) => {
+const QuestionCard = ({ item, index }) => {
     const [ open, setOpen ] = useState(false)
-    const detailsId = `question-details-${idPrefix}-${index}`
     return (
         <div className='q-card'>
-            <button
-                type='button'
-                className='q-card__header'
-                aria-expanded={open}
-                aria-controls={detailsId}
-                onClick={() => setOpen(o => !o)}
-            >
+            <div className='q-card__header' onClick={() => setOpen(o => !o)}>
                 <span className='q-card__index'>Q{index + 1}</span>
-                <span className='q-card__question'>{item.question}</span>
+                <p className='q-card__question'>{item.question}</p>
                 <span className={`q-card__chevron ${open ? 'q-card__chevron--open' : ''}`}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden='true'><polyline points="6 9 12 15 18 9" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
                 </span>
-            </button>
-                <div className='q-card__body' id={detailsId} hidden={!open}>
+            </div>
+            {open && (
+                <div className='q-card__body'>
                     <div className='q-card__section'>
                         <span className='q-card__tag q-card__tag--intention'>Intention</span>
                         <p>{item.intention}</p>
@@ -42,6 +36,7 @@ const QuestionCard = ({ item, index, idPrefix }) => {
                         <p>{item.answer}</p>
                     </div>
                 </div>
+            )}
         </div>
     )
 }
@@ -55,7 +50,7 @@ const RoadMapDay = ({ day }) => (
         <ul className='roadmap-day__tasks'>
             {day.tasks.map((task, i) => (
                 <li key={i}>
-                    <span className='roadmap-day__bullet' aria-hidden='true' />
+                    <span className='roadmap-day__bullet' />
                     {task}
                 </li>
             ))}
@@ -67,23 +62,9 @@ const RoadMapDay = ({ day }) => (
 const Interview = () => {
     const [ activeNav, setActiveNav ] = useState('technical')
     const [ isGeneratingPdf, setIsGeneratingPdf ] = useState(false)
-    const [ isCompactNav, setIsCompactNav ] = useState(() => window.matchMedia('(max-width: 680px)').matches)
     const { report, getReportById, loading, getResumePdf } = useInterview()
     const navigate = useNavigate()
     const { interviewId } = useParams()
-
-    const handleSectionKeyDown = (event, currentIndex) => {
-        let nextIndex = currentIndex
-        if (event.key === 'ArrowDown' || event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % NAV_ITEMS.length
-        else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + NAV_ITEMS.length) % NAV_ITEMS.length
-        else if (event.key === 'Home') nextIndex = 0
-        else if (event.key === 'End') nextIndex = NAV_ITEMS.length - 1
-        else return
-
-        event.preventDefault()
-        setActiveNav(NAV_ITEMS[nextIndex].id)
-        document.getElementById(`interview-tab-${NAV_ITEMS[nextIndex].id}`)?.focus()
-    }
 
     const handleDownloadResume = async () => {
         setIsGeneratingPdf(true)
@@ -100,15 +81,6 @@ const Interview = () => {
         }
     }, [ interviewId ])
 
-    useEffect(() => {
-        const mediaQuery = window.matchMedia('(max-width: 680px)')
-        const updateOrientation = (event) => setIsCompactNav(event.matches)
-        mediaQuery.addEventListener('change', updateOrientation)
-        return () => mediaQuery.removeEventListener('change', updateOrientation)
-    }, [])
-
-
-
     if (loading || !report) {
         return <LoadingState label='Loading your interview plan...' />
     }
@@ -123,7 +95,7 @@ const Interview = () => {
             <div className='interview-layout'>
 
                 {/* ── Left Nav ── */}
-                <nav className='interview-nav' aria-label='Interview plan navigation'>
+                <nav className='interview-nav'>
                     <div className="nav-content">
                         <button
                             type='button'
@@ -137,29 +109,19 @@ const Interview = () => {
                             Back to Home
                         </button>
                         <LogoutButton className='interview-logout-control' />
-                        <p className='interview-nav__label' id='interview-sections-label'>Sections</p>
-                        <div className='interview-nav__tabs' role='tablist' aria-labelledby='interview-sections-label' aria-orientation={isCompactNav ? 'horizontal' : 'vertical'}>
-                            {NAV_ITEMS.map((item, index) => (
-                                <button
-                                    key={item.id}
-                                    id={`interview-tab-${item.id}`}
-                                    type='button'
-                                    role='tab'
-                                    aria-selected={activeNav === item.id}
-                                    aria-controls={`interview-panel-${item.id}`}
-                                    tabIndex={activeNav === item.id ? 0 : -1}
-                                    className={`interview-nav__item ${activeNav === item.id ? 'interview-nav__item--active' : ''}`}
-                                    onClick={() => setActiveNav(item.id)}
-                                    onKeyDown={(event) => handleSectionKeyDown(event, index)}
-                                >
-                                    <span className='interview-nav__icon' aria-hidden='true'>{item.icon}</span>
-                                    {item.label}
-                                </button>
-                            ))}
-                        </div>
+                        <p className='interview-nav__label'>Sections</p>
+                        {NAV_ITEMS.map(item => (
+                            <button
+                                key={item.id}
+                                className={`interview-nav__item ${activeNav === item.id ? 'interview-nav__item--active' : ''}`}
+                                onClick={() => setActiveNav(item.id)}
+                            >
+                                <span className='interview-nav__icon'>{item.icon}</span>
+                                {item.label}
+                            </button>
+                        ))}
                     </div>
                     <button
-                        type='button'
                         onClick={handleDownloadResume}
                         className='button primary-button download-resume-button'
                         disabled={isGeneratingPdf}
@@ -178,31 +140,36 @@ const Interview = () => {
 
                 {/* ── Center Content ── */}
                 <main className='interview-content'>
-                    <section id='interview-panel-technical' role='tabpanel' aria-labelledby='interview-tab-technical' tabIndex={0} hidden={activeNav !== 'technical'}>
+                    {activeNav === 'technical' && (
+                        <section>
                             <div className='content-header'>
                                 <h2>Technical Questions</h2>
                                 <span className='content-header__count'>{report.technicalQuestions.length} questions</span>
                             </div>
                             <div className='q-list'>
                                 {report.technicalQuestions.map((q, i) => (
-                                    <QuestionCard key={q._id || i} item={q} index={i} idPrefix='technical' />
+                                    <QuestionCard key={i} item={q} index={i} />
                                 ))}
                             </div>
-                    </section>
+                        </section>
+                    )}
 
-                    <section id='interview-panel-behavioral' role='tabpanel' aria-labelledby='interview-tab-behavioral' tabIndex={0} hidden={activeNav !== 'behavioral'}>
+                    {activeNav === 'behavioral' && (
+                        <section>
                             <div className='content-header'>
                                 <h2>Behavioral Questions</h2>
                                 <span className='content-header__count'>{report.behavioralQuestions.length} questions</span>
                             </div>
                             <div className='q-list'>
                                 {report.behavioralQuestions.map((q, i) => (
-                                    <QuestionCard key={q._id || i} item={q} index={i} idPrefix='behavioral' />
+                                    <QuestionCard key={i} item={q} index={i} />
                                 ))}
                             </div>
-                    </section>
+                        </section>
+                    )}
 
-                    <section id='interview-panel-roadmap' role='tabpanel' aria-labelledby='interview-tab-roadmap' tabIndex={0} hidden={activeNav !== 'roadmap'}>
+                    {activeNav === 'roadmap' && (
+                        <section>
                             <div className='content-header'>
                                 <h2>Preparation Road Map</h2>
                                 <span className='content-header__count'>{report.preparationPlan.length}-day plan</span>
@@ -212,7 +179,8 @@ const Interview = () => {
                                     <RoadMapDay key={day.day} day={day} />
                                 ))}
                             </div>
-                    </section>
+                        </section>
+                    )}
                 </main>
 
                 <div className='interview-divider' />
@@ -223,7 +191,7 @@ const Interview = () => {
                     {/* Match Score */}
                     <div className='match-score'>
                         <p className='match-score__label'>Match Score</p>
-                        <div className={`match-score__ring ${scoreColor}`} role='img' aria-label={`Match score ${report.matchScore} percent`}>
+                        <div className={`match-score__ring ${scoreColor}`}>
                             <span className='match-score__value'>{report.matchScore}</span>
                             <span className='match-score__pct'>%</span>
                         </div>
@@ -238,7 +206,7 @@ const Interview = () => {
                         <div className='skill-gaps__list'>
                             {report.skillGaps.map((gap, i) => (
                                 <span key={i} className={`skill-tag skill-tag--${gap.severity}`}>
-                                    {gap.skill}<span className='sr-only'>, {gap.severity} priority</span>
+                                    {gap.skill}
                                 </span>
                             ))}
                         </div>

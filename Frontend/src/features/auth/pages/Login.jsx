@@ -38,19 +38,15 @@ const Login = () => {
                         <label htmlFor="email">Email</label>
                         <input
                             onChange={(e) => { setEmail(e.target.value) }}
-                            type="email" id="email" name='email' placeholder='Enter email address'
-                            autoComplete='email' required aria-invalid={Boolean(errorMessage)}
-                            aria-describedby={errorMessage ? 'login-error' : undefined} />
+                            type="email" id="email" name='email' placeholder='Enter email address' />
                     </div>
                     <div className="input-group">
                         <label htmlFor="password">Password</label>
                         <input
                             onChange={(e) => { setPassword(e.target.value) }}
-                            type="password" id="password" name='password' placeholder='Enter password'
-                            autoComplete='current-password' required aria-invalid={Boolean(errorMessage)}
-                            aria-describedby={errorMessage ? 'login-error' : undefined} />
+                            type="password" id="password" name='password' placeholder='Enter password' />
                     </div>
-                    {errorMessage && <p id='login-error' className='form-error' role='alert'>{errorMessage}</p>}
+                    {errorMessage && <p className='form-error' role='alert'>{errorMessage}</p>}
                     <button className='button primary-button' type='submit' disabled={isSubmitting} aria-busy={isSubmitting}>
                         {isSubmitting && <span className='button-spinner' aria-hidden='true' />}
                         {isSubmitting ? 'Logging in...' : 'Login'}
