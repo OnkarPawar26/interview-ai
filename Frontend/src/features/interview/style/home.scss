@@ -1,4 +1,6 @@
 // ── Variables ────────────────────────────────────────────────────────────────
+@use "sass:color";
+
 $bg-page:        #0d1117;
 $bg-card:        #161b22;
 $bg-panel:       #1c2230;
@@ -8,6 +10,7 @@ $text-primary:   #e6edf3;
 $text-muted:     #7d8590;
 $accent:         #ff2d78;
 $accent-alt:     #ff6b9d;
+$severity-high:  #ff4d4d;
 $badge-required: #ff2d78;
 $badge-best:     #ff2d78;
 $info-bg:        #1b2a4a;
@@ -154,6 +157,21 @@ $font-stack:     system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Robot
             right: 2rem;
             font-size: 0.75rem;
             color: $text-muted;
+
+            &--warning {
+                color: $severity-high;
+            }
+        }
+
+        .char-warning {
+            position: absolute;
+            left: 1.5rem;
+            right: 1.5rem;
+            bottom: 0.5rem;
+            margin: 0;
+            color: $severity-high;
+            font-size: 0.75rem;
+            text-align: left;
         }
     }
 
@@ -215,6 +233,10 @@ $font-stack:     system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Robot
     cursor: pointer;
     transition: border-color 0.2s, background-color 0.2s;
 
+    &--uploaded {
+        border-color: rgba(#3fb950, 0.7);
+    }
+
     &:hover {
         border-color: $accent;
         background-color: rgba($accent, 0.05);
@@ -226,16 +248,50 @@ $font-stack:     system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Robot
     }
 
     &__title {
+        max-width: 100%;
         font-size: 0.875rem;
         font-weight: 500;
         color: $text-primary;
         margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     &__subtitle {
         font-size: 0.75rem;
         color: $text-muted;
         margin: 0;
+    }
+}
+
+.upload-status {
+    margin: 0;
+    color: $text-muted;
+    font-size: 0.75rem;
+
+    &--success {
+        color: #3fb950;
+    }
+}
+
+.generation-error {
+    margin: 0 1.5rem 1rem;
+    padding: 0.8rem 1rem;
+    color: #ffb4b4;
+    background-color: rgba($severity-high, 0.1);
+    border: 1px solid rgba($severity-high, 0.45);
+    border-radius: 0.5rem;
+
+    strong {
+        display: block;
+        margin-bottom: 0.25rem;
+        color: $severity-high;
+    }
+
+    p {
+        margin: 0;
+        font-size: 0.875rem;
     }
 }
 
@@ -301,7 +357,7 @@ $font-stack:     system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Robot
     align-items: center;
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
-    background: linear-gradient(135deg, $accent 0%, darken($accent, 10%) 100%);
+    background: linear-gradient(135deg, $accent 0%, color.adjust($accent, $lightness: -10%) 100%);
     color: #fff;
     font-size: 0.9rem;
     font-weight: 600;
@@ -317,6 +373,11 @@ $font-stack:     system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Robot
 
     &:active {
         transform: scale(0.98);
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
     }
 }
 

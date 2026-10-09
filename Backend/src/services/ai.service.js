@@ -12,6 +12,7 @@ const ai = new GoogleGenAI({
 // --------------------------------------------------
 
 const interviewReportSchema = z.object({
+    title: z.string().describe("The job title or position the candidate is preparing for"),
     matchScore: z
         .number()
         .min(0)
@@ -27,7 +28,7 @@ const interviewReportSchema = z.object({
                     .string()
                     .describe("The technical question that can be asked during the interview"),
 
-                intension: z
+                intention: z
                     .string()
                     .describe(
                         "The intention of the interviewer behind asking this question"
@@ -51,7 +52,7 @@ const interviewReportSchema = z.object({
                     .string()
                     .describe("The behavioral question that can be asked during the interview"),
 
-                intension: z
+                intention: z
                     .string()
                     .describe(
                         "The intention of the interviewer behind asking this question"

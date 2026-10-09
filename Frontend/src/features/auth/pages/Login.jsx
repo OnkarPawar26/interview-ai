@@ -10,11 +10,18 @@ const Login = () => {
 
     const [ email, setEmail ] = useState("")
     const [ password, setPassword ] = useState("")
+    const [ errorMessage, setErrorMessage ] = useState("")
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        await handleLogin({email,password})
-        navigate('/')
+        setErrorMessage("")
+
+        try {
+            await handleLogin({ email, password })
+            navigate('/')
+        } catch (error) {
+            setErrorMessage(error.response?.data?.message || "Unable to log in. Please try again.")
+        }
     }
 
     if(loading){
@@ -39,6 +46,7 @@ const Login = () => {
                             onChange={(e) => { setPassword(e.target.value) }}
                             type="password" id="password" name='password' placeholder='Enter password' />
                     </div>
+                    {errorMessage && <p className='form-error' role='alert'>{errorMessage}</p>}
                     <button className='button primary-button' >Login</button>
                 </form>
                 <p>Don't have an account? <Link to={"/register"} >Register</Link> </p>

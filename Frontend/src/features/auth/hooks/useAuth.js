@@ -15,8 +15,7 @@ export const useAuth = () => {
         try {
             const data = await login({ email, password })
             setUser(data.user)
-        } catch (err) {
-
+            return data
         } finally {
             setLoading(false)
         }
@@ -52,8 +51,12 @@ export const useAuth = () => {
             try {
 
                 const data = await getMe()
-                setUser(data.user)
-            } catch (err) { } finally {
+                if (data?.user) {
+                    setUser(data.user)
+                }
+            } catch (err) {
+                console.error("Unable to restore the current session:", err)
+            } finally {
                 setLoading(false)
             }
         }

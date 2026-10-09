@@ -1,21 +1,35 @@
-import React, { useState, useRef } from 'react'
+import React, { useState } from 'react'
 import "../style/home.scss"
 import { useInterview } from '../hooks/useInterview.js'
 import { useNavigate } from 'react-router'
+
+const JOB_DESCRIPTION_CHAR_LIMIT = 5000
 
 const Home = () => {
 
     const { loading, generateReport,reports } = useInterview()
     const [ jobDescription, setJobDescription ] = useState("")
     const [ selfDescription, setSelfDescription ] = useState("")
-    const resumeInputRef = useRef()
+    const [ resumeFile, setResumeFile ] = useState(null)
+    const [ generationError, setGenerationError ] = useState("")
+    const isJobDescriptionOverLimit = jobDescription.length > JOB_DESCRIPTION_CHAR_LIMIT
 
     const navigate = useNavigate()
 
     const handleGenerateReport = async () => {
-        const resumeFile = resumeInputRef.current.files[ 0 ]
-        const data = await generateReport({ jobDescription, selfDescription, resumeFile })
-        navigate(`/interview/${data._id}`)
+        if (isJobDescriptionOverLimit) return
+
+        setGenerationError("")
+        try {
+            const data = await generateReport({ jobDescription, selfDescription, resumeFile })
+            navigate(`/interview/${data._id}`)
+        } catch (error) {
+            setGenerationError(
+                error.response?.status >= 500
+                    ? "We couldn't generate your interview plan right now. Please try again in a moment."
+                    : error.response?.data?.message || "Unable to generate your interview plan. Please try again."
+            )
+        }
     }
 
     if (loading) {
@@ -49,12 +63,22 @@ const Home = () => {
                             <span className='badge badge--required'>Required</span>
                         </div>
                         <textarea
-                            onChange={(e) => { setJobDescription(e.target.value) }}
+                            value={jobDescription}
+                            onChange={(e) => setJobDescription(e.target.value)}
                             className='panel__textarea'
                             placeholder={`Paste the full job description here...\ne.g. 'Senior Frontend Engineer at Google requires proficiency in React, TypeScript, and large-scale system design...'`}
-                            maxLength={5000}
+                            aria-invalid={isJobDescriptionOverLimit}
+                            aria-describedby={isJobDescriptionOverLimit ? 'job-description-limit-warning' : undefined}
                         />
-                        <div className='char-counter'>0 / 5000 chars</div>
+                        <div className={`char-counter ${isJobDescriptionOverLimit ? 'char-counter--warning' : ''}`}>
+                            {jobDescription.length} / {JOB_DESCRIPTION_CHAR_LIMIT} chars
+                        </div>
+                        {isJobDescriptionOverLimit && (
+                            <p id='job-description-limit-warning' className='char-warning' role='alert'>
+                                {jobDescription.length - JOB_DESCRIPTION_CHAR_LIMIT}{' '}
+                                {jobDescription.length - JOB_DESCRIPTION_CHAR_LIMIT === 1 ? 'character' : 'characters'} over the limit. Shorten the description to continue.
+                            </p>
+                        )}
                     </div>
 
                     {/* Vertical Divider */}
@@ -75,14 +99,30 @@ const Home = () => {
                                 Upload Resume
                                 <span className='badge badge--best'>Best Results</span>
                             </label>
-                            <label className='dropzone' htmlFor='resume'>
+                            <label className={`dropzone ${resumeFile ? 'dropzone--uploaded' : ''}`} htmlFor='resume'>
                                 <span className='dropzone__icon'>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 16 12 12 8 16" /><line x1="12" y1="12" x2="12" y2="21" /><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3" /></svg>
                                 </span>
-                                <p className='dropzone__title'>Click to upload or drag &amp; drop</p>
-                                <p className='dropzone__subtitle'>PDF or DOCX (Max 5MB)</p>
-                                <input ref={resumeInputRef} hidden type='file' id='resume' name='resume' accept='.pdf,.docx' />
+                                <p className='dropzone__title' title={resumeFile?.name}>
+                                    {resumeFile ? resumeFile.name : 'Click to upload or drag & drop'}
+                                </p>
+                                <p className='dropzone__subtitle'>
+                                    {resumeFile
+                                        ? `${(resumeFile.size / (1024 * 1024)).toFixed(2)} MB · Click to replace`
+                                        : 'PDF or DOCX (Max 5MB)'}
+                                </p>
+                                <input
+                                    hidden
+                                    type='file'
+                                    id='resume'
+                                    name='resume'
+                                    accept='.pdf,.docx'
+                                    onChange={(event) => setResumeFile(event.target.files?.[0] ?? null)}
+                                />
                             </label>
+                            <p className={`upload-status ${resumeFile ? 'upload-status--success' : ''}`} role='status'>
+                                {resumeFile ? 'Resume uploaded successfully.' : 'No resume uploaded. You can use your self-description instead.'}
+                            </p>
                         </div>
 
                         {/* OR Divider */}
@@ -110,12 +150,20 @@ const Home = () => {
                     </div>
                 </div>
 
+                {generationError && (
+                    <div className='generation-error' role='alert'>
+                        <strong>Report generation failed</strong>
+                        <p>{generationError}</p>
+                    </div>
+                )}
+
                 {/* Card Footer */}
                 <div className='interview-card__footer'>
                     <span className='footer-info'>AI-Powered Strategy Generation &bull; Approx 30s</span>
                     <button
                         onClick={handleGenerateReport}
-                        className='generate-btn'>
+                        className='generate-btn'
+                        disabled={isJobDescriptionOverLimit}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" /></svg>
                         Generate My Interview Strategy
                     </button>
