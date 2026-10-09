@@ -62,6 +62,29 @@ $severity-low: #3fb950;
     gap: 0.25rem;
 
 
+    &__home {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        width: 100%;
+        margin-bottom: 1.25rem;
+        padding: 0.6rem 0.75rem;
+        background: transparent;
+        border: 1px solid $border-color;
+        border-radius: 0.5rem;
+        color: $text-muted;
+        font-family: $font-stack;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+
+        &:hover {
+            color: $accent;
+            border-color: rgba($accent, 0.5);
+            background-color: rgba($accent, 0.06);
+        }
+    }
+
 
 
     &__label {
@@ -478,6 +501,30 @@ $severity-low: #3fb950;
         background-color: rgba($severity-low, 0.1);
         border-color: rgba($severity-low, 0.25);
     }
+}
+
+.interview-logout-control {
+    margin: -0.5rem 0 1.25rem;
+
+    .logout-button {
+        width: 100%;
+        justify-content: flex-start;
+        color: $text-muted;
+        background: transparent;
+        border-color: $border-color;
+
+        &:hover:not(:disabled) {
+            color: $severity-high;
+            border-color: rgba($severity-high, 0.5);
+            background-color: rgba($severity-high, 0.06);
+        }
+    }
+}
+
+.logout-error {
+    margin: 0.4rem 0 0;
+    color: $severity-high;
+    font-size: 0.75rem;
 }
 
 .download-resume-button:disabled {

@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import "../style/home.scss"
 import { useInterview } from '../hooks/useInterview.js'
 import { useNavigate } from 'react-router'
+import LogoutButton from '../../auth/components/LogoutButton.jsx'
 
 const JOB_DESCRIPTION_CHAR_LIMIT = 5000
 
@@ -63,6 +64,7 @@ const Home = () => {
 
     return (
         <div className='home-page'>
+            <LogoutButton className='home-logout-control' />
 
             {/* Page Header */}
             <header className='page-header'>

@@ -33,15 +33,8 @@ export async function login({ email, password }) {
 }
 
 export async function logout() {
-    try {
-
-        const response = await api.get("/api/auth/logout")
-
-        return response.data
-
-    } catch (err) {
-
-    }
+    const response = await api.get("/api/auth/logout")
+    return response.data
 }
 
 export async function getMe() {
