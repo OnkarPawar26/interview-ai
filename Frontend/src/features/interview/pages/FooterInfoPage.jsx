@@ -5,18 +5,46 @@ import './footerInfoPage.scss'
 const supportEmail = 'pawaronkar2605@gmail.com'
 
 const footerPages = {
+    about: {
+        title: 'About Interview.ai',
+        intro: 'A focused space to turn interview preparation into a clear, practical plan.',
+        sections: [
+            {
+                title: 'Our purpose',
+                paragraphs: [
+                    'Preparing for an interview can mean sorting through a job description, deciding which experience to highlight, and figuring out what to practice. Interview.ai brings those pieces together in one place.',
+                    'Share the role and your background to get a tailored preparation plan with likely questions, answer guidance, skill areas to review, and a day-by-day study outline.'
+                ]
+            },
+            {
+                title: 'Our vision',
+                paragraphs: [
+                    'We want thoughtful interview preparation to feel more approachable and useful for every candidate. Our vision is to help people understand what a role calls for, recognize where their experience fits, and walk into conversations feeling prepared to explain their strengths.'
+                ]
+            },
+            {
+                title: 'People first, AI assisted',
+                paragraphs: [
+                    'Interview.ai is designed to support your preparation, not make decisions for you. AI suggestions are a starting point: your experience, judgment, and own voice should shape the final answers you bring to an interview.'
+                ]
+            }
+        ]
+    },
     help: {
         title: 'Help Center',
         intro: 'Find quick answers about using Interview.ai and your personalized interview plans.',
         sections: [
             {
-                title: 'Getting started',
-                paragraphs: [
-                    'Add the job description you are preparing for, then upload a resume or write a short self-description. Select Generate My Interview Plan to create role-specific preparation guidance.',
-                    'Your generated plans appear under My Recent Interview Plans on the home page. Select a plan to review its questions, skill gaps, and preparation schedule.'
+                id: 'getting-started',
+                title: 'Get started in three steps',
+                steps: [
+                    { title: 'Add the role', details: 'Paste the job description for the position you are preparing for.' },
+                    { title: 'Add your background', details: 'Upload your resume or enter a short self-description with your experience and skills.' },
+                    { title: 'Build your plan', details: 'Choose Generate My Interview Plan. Find saved plans under My Recent Interview Plans.' }
                 ]
             },
             {
+                id: 'faq',
                 title: 'Frequently asked questions',
                 items: [
                     {
@@ -38,6 +66,7 @@ const footerPages = {
                 ]
             },
             {
+                id: 'troubleshooting',
                 title: 'Troubleshooting',
                 paragraphs: [
                     'If generation fails, check that the job description is within the character limit and that you have supplied a resume or self-description. Try again after checking your connection.',
@@ -125,31 +154,66 @@ const FooterInfoPage = ({ page }) => {
     return (
         <main className='footer-info-page'>
             <article className='footer-info-card'>
-                <Link className='footer-info-back' to='/'>← Back to Interview.ai</Link>
+                <div className='footer-info-topbar'>
+                    <Link className='footer-info-brand' to='/' aria-label='Interview.ai home'>
+                        <span className='footer-info-logo' aria-hidden='true'>
+                            <svg viewBox='0 0 16 16' fill='currentColor' xmlns='http://www.w3.org/2000/svg'>
+                                <path d='M13.5 12a1.48045 1.48045 0 0 0-.6427.1504L10.70705 10H9v1h1.29295l1.8573 1.8574A1.48325 1.48325 0 0 0 12 13.5a1.5 1.5 0 1 0 1.5-1.5Zm0 2a.5.5 0 1 1 .5-.5.50045.50045 0 0 1-.5.5Z' />
+                                <path d='M13.5 6.5a1.4974 1.4974 0 0 0-1.40785 1H9v1h3.09215A1.49735 1.49735 0 1 0 13.5 6.5Zm0 2a.5.5 0 1 1 .5-.5.50045.50045 0 0 1-.5.5Z' />
+                                <path d='M13.5 1a1.50165 1.50165 0 0 0-1.5 1.5 1.48285 1.48285 0 0 0 .17405.6865L10.29785 5H9v1h1.70215l2.19945-2.1262A1.49935 1.49935 0 1 0 13.5 1Zm0 2a.5.5 0 1 1 .5-.5.50045.50045 0 0 1-.5.5Z' />
+                                <path d='M9 3h1V2H9a1.9878 1.9878 0 0 0-1.5.69115A1.9878 1.9878 0 0 0 6 2h-.5A4.505 4.505 0 0 0 1 6.5v3A4.505 4.505 0 0 0 5.5 14H6a1.9878 1.9878 0 0 0 1.5-.69115A1.9878 1.9878 0 0 0 9 14h1v-1H9a1.00115 1.00115 0 0 1-1-1V4a1.00115 1.00115 0 0 1 1-1ZM6 13h-.5a3.50235 3.50235 0 0 1-3.46-3H3V9H2V7h1.5A1.50165 1.50165 0 0 0 5 5.5v-1H4v1a.50045.50045 0 0 1-.5.5H2.04A3.50235 3.50235 0 0 1 5.5 3H6a1.00115 1.00115 0 0 1 1 1v2H6v1h1v2H6a1.50165 1.50165 0 0 0-1.5 1.5v1h1v-1A.50045.50045 0 0 1 6 10h1v2a1.00115 1.00115 0 0 1-1 1Z' />
+                            </svg>
+                        </span>
+                        <span>Interview<span className='footer-info-brand-accent'>.ai</span></span>
+                    </Link>
+                    <Link className='footer-info-back' to='/'>Back to app <span aria-hidden='true'>→</span></Link>
+                </div>
                 <header className='footer-info-header'>
-                    <span>INTERVIEW.AI</span>
+                    <span className='footer-info-eyebrow'>{page === 'help' ? 'SUPPORT' : 'INTERVIEW.AI'}</span>
                     <h1>{content.title}</h1>
                     <p>{content.intro}</p>
                 </header>
 
-                <div className='footer-info-sections'>
+                <div className={`footer-info-sections ${page === 'help' ? 'footer-info-sections--help' : ''}`}>
                     {content.sections.map((section) => (
-                        <section className='footer-info-section' key={section.title}>
+                        <section className={`footer-info-section ${section.id ? `footer-info-section--${section.id}` : ''}`} key={section.title}>
                             <h2>{section.title}</h2>
                             {section.paragraphs?.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+                            {section.steps && (
+                                <ol className='footer-info-steps'>
+                                    {section.steps.map((step, index) => (
+                                        <li key={step.title}>
+                                            <span className='footer-info-step-number'>{String(index + 1).padStart(2, '0')}</span>
+                                            <div>
+                                                <h3>{step.title}</h3>
+                                                <p>{step.details}</p>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ol>
+                            )}
                             {section.items?.map((item) => (
-                                <div className='footer-info-faq' key={item.question}>
-                                    <h3>{item.question}</h3>
+                                <details className='footer-info-faq' key={item.question}>
+                                    <summary>{item.question}</summary>
                                     <p>{item.answer}</p>
-                                </div>
+                                </details>
                             ))}
                         </section>
                     ))}
                 </div>
 
-                <a className='footer-info-contact' href={`mailto:${supportEmail}`}>
-                    Contact support
-                </a>
+                <div className='footer-info-bottom'>
+                    <nav className='footer-info-related' aria-label='Information pages'>
+                        <span>More resources</span>
+                        <Link to='/about'>About Us</Link>
+                        <Link to='/help'>Help Center</Link>
+                        <Link to='/privacy-policy'>Privacy Policy</Link>
+                        <Link to='/terms'>Terms of Service</Link>
+                    </nav>
+                    <a className='footer-info-contact' href={`mailto:${supportEmail}?subject=Interview.ai%20Support`}>
+                        Contact support <span aria-hidden='true'>↗</span>
+                    </a>
+                </div>
             </article>
         </main>
     )

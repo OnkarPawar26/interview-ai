@@ -240,6 +240,8 @@ const Home = () => {
 
                 <div className='page-footer__bottom'>
                     <nav className='page-footer__links' aria-label='Footer links'>
+                        <Link to='/about'>About Us</Link>
+                        <span aria-hidden='true'>•</span>
                         <Link to='/help'>Help Center</Link>
                         <span aria-hidden='true'>•</span>
                         <Link to='/privacy-policy'>Privacy Policy</Link>
