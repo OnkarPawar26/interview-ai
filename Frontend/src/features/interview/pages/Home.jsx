@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react'
 import "../style/home.scss"
 import { useInterview } from '../hooks/useInterview.js'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import LogoutButton from '../../auth/components/LogoutButton.jsx'
 import { AuthContext } from '../../auth/auth.context.jsx'
 import LoadingState from '../../../components/LoadingState.jsx'
@@ -240,13 +240,13 @@ const Home = () => {
 
                 <div className='page-footer__bottom'>
                     <nav className='page-footer__links' aria-label='Footer links'>
-                        <a href='mailto:pawaronkar2605@gmail.com'>Help Center</a>
+                        <Link to='/help'>Help Center</Link>
                         <span aria-hidden='true'>•</span>
-                        <a href='#privacy'>Privacy Policy</a>
+                        <Link to='/privacy-policy'>Privacy Policy</Link>
                         <span aria-hidden='true'>•</span>
-                        <a href='#terms'>Terms of Service</a>
+                        <Link to='/terms'>Terms of Service</Link>
                         <span aria-hidden='true'>•</span>
-                        <a href='mailto:?subject=Contact%20Interview.ai'>Contact</a>
+                        <a href='mailto:pawaronkar2605@gmail.com?subject=Contact%20Interview.ai'>Contact</a>
                     </nav>
                     <p>© {new Date().getFullYear()} Interview.ai · Built to help you prepare with confidence.</p>
                 </div>

@@ -1,0 +1,98 @@
+.footer-info-page {
+    min-height: 100vh;
+    padding: 3rem 1.25rem;
+    color: #e6edf3;
+    background: #0d1117;
+}
+
+.footer-info-card {
+    width: min(100%, 820px);
+    margin: 0 auto;
+    padding: clamp(1.25rem, 4vw, 2.5rem);
+    background: #161b22;
+    border: 1px solid #2a3348;
+    border-radius: 1rem;
+}
+
+.footer-info-back,
+.footer-info-contact {
+    color: #a1aab5;
+    font-size: 0.88rem;
+    text-decoration: none;
+    transition: color 0.2s ease;
+
+    &:hover {
+        color: #ff2d78;
+    }
+}
+
+.footer-info-header {
+    margin: 2rem 0;
+
+    > span {
+        color: #ff2d78;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+    }
+
+    h1 {
+        margin: 0.4rem 0 0.65rem;
+        font-size: clamp(1.8rem, 5vw, 2.5rem);
+    }
+
+    p {
+        max-width: 650px;
+        color: #a1aab5;
+        line-height: 1.65;
+    }
+}
+
+.footer-info-sections {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.footer-info-section {
+    padding-top: 1.25rem;
+    border-top: 1px solid #2a3348;
+
+    h2 {
+        margin-bottom: 0.7rem;
+        font-size: 1.1rem;
+    }
+
+    p {
+        margin: 0.55rem 0;
+        color: #a1aab5;
+        font-size: 0.92rem;
+        line-height: 1.7;
+    }
+}
+
+.footer-info-faq {
+    margin-top: 1rem;
+
+    h3 {
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+}
+
+.footer-info-contact {
+    display: inline-flex;
+    margin-top: 1.75rem;
+    padding: 0.7rem 1rem;
+    border: 1px solid #2a3348;
+    border-radius: 0.55rem;
+}
+
+@media (max-width: 480px) {
+    .footer-info-page {
+        padding: 1rem 0.75rem;
+    }
+
+    .footer-info-card {
+        border-radius: 0.75rem;
+    }
+}
