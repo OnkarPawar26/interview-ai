@@ -3,6 +3,8 @@ const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const tokenBlacklistModel = require("../models/blacklist.model")
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 /**
  * @name registerUserController
  * @description register a new user, expects username, email and password in the request body
@@ -15,6 +17,12 @@ async function registerUserController(req, res) {
     if (!username || !email || !password) {
         return res.status(400).json({
             message: "Please provide username, email and password"
+        })
+    }
+
+    if (typeof email !== "string" || !EMAIL_REGEX.test(email)) {
+        return res.status(400).json({
+            message: "Please provide a valid email address"
         })
     }
 
@@ -65,6 +73,12 @@ async function registerUserController(req, res) {
 async function loginUserController(req, res) {
 
     const { email, password } = req.body
+
+    if (typeof email !== "string" || !EMAIL_REGEX.test(email)) {
+        return res.status(400).json({
+            message: "Please provide a valid email address"
+        })
+    }
 
     const user = await userModel.findOne({ email })
 
