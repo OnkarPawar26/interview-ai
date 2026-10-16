@@ -453,8 +453,19 @@ $severity-low: #3fb950;
     &__sub {
         margin: 0;
         font-size: 0.75rem;
-        color: $severity-low;
         text-align: center;
+
+        &.score--high {
+            color: $severity-low;
+        }
+
+        &.score--mid {
+            color: $severity-medium;
+        }
+
+        &.score--low {
+            color: $severity-high;
+        }
     }
 }
 
