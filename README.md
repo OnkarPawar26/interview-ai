@@ -13,6 +13,7 @@ Interview.ai is a web app for preparing for job interviews. A signed-in user pro
 - [Data model](#data-model)
 - [API routes](#api-routes)
 - [Run locally](#run-locally)
+- [Deploy to AWS with Docker, ECR, and ECS](#deploy-to-aws-with-docker-ecr-and-ecs)
 - [Environment variables](#environment-variables)
 - [Project structure](#project-structure)
 
@@ -108,7 +109,7 @@ flowchart LR
 
 ### Backend
 
-The backend starts in `Backend/server.js`. It loads environment variables, connects to MongoDB, and starts the Express app on port `3000`. `Backend/src/app.js` installs JSON, cookie, and CORS middleware, then mounts the route modules.
+The backend starts in `Backend/server.js`. It loads environment variables, connects to MongoDB, and starts the Express app on port `3000` by default (or the port in `PORT`). `Backend/src/app.js` installs JSON, cookie, and CORS middleware, serves the built frontend from `Backend/public`, then mounts the route modules.
 
 Requests generally pass through these layers:
 
@@ -198,7 +199,7 @@ The report-list API omits source text and detailed report sections to keep the r
 
 ## API routes
 
-All routes use the backend origin `http://localhost:3000`. Routes marked **Protected** require the JWT cookie.
+In the deployed single-container setup, the frontend and API share the same origin. When running locally, the backend origin is `http://localhost:3000`. Routes marked **Protected** require the JWT cookie.
 
 | Method | Path | Access | Purpose |
 | --- | --- | --- | --- |
@@ -248,6 +249,116 @@ npm run lint
 ```
 
 `npm test` in the backend is currently a placeholder and does not run a test suite.
+
+## Deploy to AWS with Docker, ECR, and ECS
+
+This deployment uses one Docker image for the complete application: the frontend is built with Vite, then copied into the backend image, where Express serves it alongside the API. The image includes the Node.js base operating system, application code, Node.js dependencies, and Chromium required by Puppeteer. Amazon ECR stores the image; Amazon ECS on Fargate runs it without managing EC2 hosts. An Application Load Balancer (ALB) provides the public entry point.
+
+### Deployment workflow
+
+The diagrams below show the release steps and how requests flow through the deployed AWS resources.
+
+```mermaid
+flowchart LR
+    Code[Application source] --> Build[Docker build]
+    Build --> Image["Container image<br/>Linux base OS + frontend build + backend code<br/>Node dependencies + Chromium"]
+    Image -->|Tag and push| ECR[Amazon ECR repository]
+    ECR -->|Image URI| Definition[ECS task definition revision<br/>image + port + logs + secrets]
+    Definition -->|Deploy revision| Service[ECS service]
+    Service -->|Start desired tasks| Fargate[AWS Fargate task]
+    ExecutionRole[IAM task execution role] -->|Pull image and retrieve secrets| Fargate
+    Service -->|Attach tasks to port 3000| TargetGroup[ALB target group]
+```
+
+```mermaid
+flowchart LR
+    Developer[Developer or CI] -->|Build and push image| ECR[Amazon ECR]
+    ECR -->|Pull image using task execution role| ECS[ECS Fargate service]
+    Internet --> ALB[Application Load Balancer]
+    ALB -->|HTTP 3000; target group| Task[Application task]
+    Task -->|MongoDB connection| Mongo[(MongoDB)]
+    Task -->|HTTPS API requests| Gemini[Google Gemini API]
+    Secrets[AWS Secrets Manager] -->|Injected at task start| Task
+    ECS -->|Task ENI and security group| Task
+```
+
+### 1. Prepare AWS resources and application configuration
+
+Choose an AWS Region and create or select a VPC with at least two Availability Zones. Place the ALB in public subnets and the Fargate tasks in private subnets. Configure private-subnet outbound access through a NAT gateway (or another approved egress path), because the application must connect to MongoDB and the Gemini API. If using MongoDB Atlas IP access lists, allow the NAT gateway's static public IP rather than task IP addresses.
+
+Create an AWS Secrets Manager secret containing the application's production values. For example, the secret can be a JSON object with `MONGO_URI`, `JWT_SECRET`, and `GOOGLE_GENAI_API_KEY`. Restrict access to the secret and do not put credentials in the Docker image, source control, or a plain-text task-definition environment variable. If the secret uses a customer-managed KMS key, the task execution role also needs permission to decrypt with that key.
+
+### 2. Create an ECR repository and push the Docker image
+
+The repository's Dockerfile is named `dockerfile` (lowercase), so specify it with `-f`. Run these commands from the repository root in PowerShell with Docker and the AWS CLI installed and configured for an identity allowed to create/use the ECR repository and push images:
+
+> **Note:** The root `.gitignore` currently excludes `dockerfile`. It must be present in the build workspace for `docker build` to work. Keep a copy in your local workspace, or intentionally include it in the repository/build pipeline if deployments need to build from a fresh checkout.
+
+```powershell
+$AWS_REGION = "us-east-1"
+$AWS_ACCOUNT_ID = "123456789012"
+$ECR_REPOSITORY = "interview-ai"
+$IMAGE_TAG = "1.0.0"
+$REGISTRY = "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
+
+aws ecr create-repository --repository-name $ECR_REPOSITORY --region $AWS_REGION
+aws ecr get-login-password --region $AWS_REGION |
+    docker login --username AWS --password-stdin $REGISTRY
+
+docker build -f dockerfile -t "${ECR_REPOSITORY}:${IMAGE_TAG}" .
+docker tag "${ECR_REPOSITORY}:${IMAGE_TAG}" "${REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+docker push "${REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+```
+
+Replace the sample account, region, and image tag with your own values. Use a unique tag for each release; avoid relying on `latest` for production rollbacks. ECR image tags are references to the built image, not a substitute for deploying a new ECS task definition.
+
+### 3. Create the ECS task execution role and task definition
+
+In IAM, create or use the ECS task execution role trusted by `ecs-tasks.amazonaws.com`. Attach the standard `AmazonECSTaskExecutionRolePolicy` so ECS can pull from ECR and publish container logs to CloudWatch Logs. Add narrowly scoped `secretsmanager:GetSecretValue` permission for the application secret (and `kms:Decrypt` only if required by its customer-managed key).
+
+Create an ECS cluster with the AWS Fargate capacity provider, then register a Fargate task definition with settings like these:
+
+| Setting | Value |
+| --- | --- |
+| Operating system / architecture | Linux / X86_64 |
+| Network mode | `awsvpc` |
+| Task size | Start with 1 vCPU and 2 GiB memory; adjust using CloudWatch metrics and load testing. |
+| Task execution role | The role described above; used by ECS to pull the image, write logs, and retrieve configured secrets. |
+| Task role | No AWS permissions are needed by the current application code. Add permissions only if the application later calls AWS services directly. |
+| Container image | `<account-id>.dkr.ecr.<region>.amazonaws.com/interview-ai:<image-tag>` |
+| Container port | `3000` / TCP |
+| Environment | `PORT=3000`; `PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium` |
+| Secrets | Map `MONGO_URI`, `JWT_SECRET`, and `GOOGLE_GENAI_API_KEY` from Secrets Manager. |
+| Logs | Use the `awslogs` driver and a dedicated CloudWatch Logs group with retention configured. |
+
+The Dockerfile sets `PUPPETEER_EXECUTABLE_PATH`; setting it explicitly in the task definition makes the runtime requirement visible. ECS injects the configured Secrets Manager values when the task starts. Grant the execution role access to the secret; do not grant broad access to all secrets.
+
+### 4. Configure the load balancer and security groups
+
+Create an internet-facing Application Load Balancer across at least two public subnets and an IP target group on HTTP port `3000`. Configure the target group's health check path as `/`; the app serves the built frontend at this path. Set the success matcher to `200`.
+
+Use separate security groups with least-privilege rules:
+
+| Security group | Inbound | Outbound |
+| --- | --- | --- |
+| ALB security group | Allow HTTPS `443` from intended client networks (or `0.0.0.0/0` for a public site). Optionally allow HTTP `80` only to redirect to HTTPS. | Allow TCP `3000` to the ECS task security group. |
+| ECS task security group | Allow TCP `3000` only from the ALB security group. Do not expose the task directly to the internet. | Allow required connections to MongoDB, Gemini, and AWS endpoints/NAT. |
+
+Request or import an ACM certificate in the ALB's Region. Set the ALB's `443` listener to forward to the target group and, if port `80` is enabled, redirect it to HTTPS. Add a DNS record pointing your application domain to the ALB. Ensure the MongoDB network/access-list configuration permits connections from the tasks' egress path.
+
+### 5. Create and deploy the ECS service
+
+Create an ECS service from the task definition in the cluster. Select Fargate, deploy tasks into the private subnets, disable public IP assignment, and associate the service with the ALB target group and container port `3000`. Choose a desired task count appropriate for the app and enable the ECS deployment circuit breaker with rollback where available. Wait until the tasks are `RUNNING` and the ALB target group reports healthy targets, then open the ALB DNS name or configured domain over HTTPS.
+
+For later releases, build and push a new uniquely tagged image, update the task definition to use that tag, and update the ECS service to deploy the new revision. Monitor ECS service events, container logs in CloudWatch, target health, CPU/memory, and MongoDB/Gemini connectivity. Keep the previous task-definition revision and image available for rollback.
+
+### Production checklist
+
+- Store production credentials in Secrets Manager and use scoped IAM roles. The developer/CI identity that pushes images should have only the ECR permissions it needs; it should not use the ECS task role.
+- Keep ECS tasks in private subnets and allow application ingress only from the ALB security group. Do not expose MongoDB to `0.0.0.0/0`.
+- The current CORS configuration allows `http://localhost:5173`. The single-origin deployment serves the frontend and API from the same origin, so browser API calls do not require cross-origin access. If deploying the frontend on a different origin, configure CORS for that exact trusted origin.
+- The current login code sets the JWT cookie without explicit production cookie options. Before exposing the app publicly, configure the cookie with appropriate `httpOnly`, `secure` (HTTPS), and `sameSite` settings, and verify login/logout behavior through the ALB.
+- Configure log retention, alarms, backups for MongoDB, TLS renewal/ownership, and a tested rollback procedure before production use.
 
 ## Environment variables
 
